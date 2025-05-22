@@ -1,0 +1,5 @@
+stable-diffusion-webui/
+node_modules/
+venv/
+.venv/
+__pycache__/
