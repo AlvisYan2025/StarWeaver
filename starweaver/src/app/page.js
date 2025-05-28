@@ -1,8 +1,15 @@
 import Image from "next/image";
-import NovelGeneratorUI from "./NovelAI";
+import NovelGeneratorUI from "./writerUI/NovelAI";
+import StarWeaverCommunity from "./Community/community";
+
 
 export default function Home() {
   return (
-    <NovelGeneratorUI />
+    <>
+      <main>
+        <StarWeaverCommunity/>
+      </main>
+    </>
   );
 }
+
