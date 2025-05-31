@@ -1,6 +1,7 @@
 from user import User   
 from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy.ext.declarative import declarative_base
+from db.db import Base
 
 class Story(Base):
     __tablename__ = 'stories'
@@ -12,6 +13,7 @@ class Story(Base):
 
     user = relationship('User', back_populates='stories')
     contents = relationship('TextContent', back_populates='story', cascade='all, delete-orphan')
+    comments = relationship("Comment", back_populates="story", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Story(id={self.id}, title={self.title})>"
@@ -27,8 +29,19 @@ class TextContent(Base):
     story = relationship('Story', back_populates='contents')
     parent = relationship('TextContent', remote_side=[id], back_populates='children')
     children = relationship('TextContent', back_populates='parent', cascade='all, delete-orphan')
-    # To be added: image = relationship("Image", ...)
+    # Image to be added later
 
     def __repr__(self):
         return f"<TextContent(id={self.id}, story_id={self.story_id}, text={self.text[:30]}...)>"
 
+class Comment(Base):
+    __tablename__ = 'comments'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    story_id = Column(Integer, ForeignKey('stories.id'), nullable=False)
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="comments")
+    story = relationship("Story", back_populates="comments")
