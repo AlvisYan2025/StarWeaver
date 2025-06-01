@@ -29,6 +29,12 @@ export default function StarWeaverCommunity() {
   const [backgroundOffset, setBackgroundOffset] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [hoveredStory, setHoveredStory] = useState(null);
+  const [communityStories, setCommunityStories] = useState([]);
+  const [isLoadingStories, setIsLoadingStories] = useState(true);
+  const [loadingError, setLoadingError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const storiesPerPage = 10;
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -36,6 +42,73 @@ export default function StarWeaverCommunity() {
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Fetch community stories from backend
+  useEffect(() => {
+    const fetchCommunityStories = async () => {
+      setIsLoadingStories(true);
+      setLoadingError(null);
+      
+      try {
+        const response = await fetch('/list-community-stories');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch stories: ${response.status} ${response.statusText}`);
+        }
+        
+        const fetchedStories = await response.json();
+        
+        // Transform backend data to match our story format
+        const transformedStories = fetchedStories.map((story, index) => ({
+          id: `community-${story.id || index}`,
+          title: story.title || 'Untitled Story',
+          author: story.author || 'Anonymous',
+          excerpt: story.excerpt || story.description || 'No description available.',
+          genre: story.genre || 'Unknown',
+          chapters: story.chapters || story.chapter_count || 1,
+          words: story.words || story.word_count || 0,
+          likes: story.likes || story.like_count || 0,
+          comments: story.comments || story.comment_count || 0,
+          views: story.views || story.view_count || 0,
+          rating: story.rating || 4.0,
+          constellation: story.constellation || story.category || 'Unknown',
+          threads: story.threads || Math.floor(Math.random() * 20) + 5,
+          weavingPattern: story.weaving_pattern || story.pattern || ['spiral', 'fractal', 'geometric', 'flowing', 'network'][Math.floor(Math.random() * 5)],
+          stardust: story.stardust || Math.floor(story.rating * 20) || Math.floor(Math.random() * 40) + 60,
+          // Generate cosmic position for new stories
+          position: {
+            x: 10 + (index % 4) * 20 + Math.random() * 15,
+            y: 10 + Math.floor(index / 4) * 20 + Math.random() * 15
+          },
+          // Assign color gradients
+          color: [
+            "from-violet-500 via-purple-600 to-indigo-700",
+            "from-emerald-400 via-teal-500 to-cyan-600", 
+            "from-amber-400 via-orange-500 to-red-600",
+            "from-pink-400 via-rose-500 to-fuchsia-600",
+            "from-blue-400 via-indigo-500 to-purple-600"
+          ][index % 5],
+          glowColor: ['purple', 'emerald', 'amber', 'pink', 'blue'][index % 5],
+          // Mark as community story
+          isCommunityStory: true,
+          createdAt: story.created_at || story.createdAt || new Date().toISOString()
+        }));
+        
+        setCommunityStories(transformedStories);
+        
+        // Reset to first page when new stories are loaded
+        setCurrentPage(1);
+        
+      } catch (error) {
+        console.error('Error fetching community stories:', error);
+        setLoadingError(error.message);
+      } finally {
+        setIsLoadingStories(false);
+      }
+    };
+
+    fetchCommunityStories();
   }, []);
 
   const stories = [
@@ -148,6 +221,36 @@ export default function StarWeaverCommunity() {
     { id: 'new', label: 'New', icon: Clock }
   ];
 
+  // Combine example stories with community stories
+  const allStories = [...stories, ...communityStories];
+
+  // Pagination logic
+  const totalPages = Math.ceil(allStories.length / storiesPerPage);
+  const startIndex = (currentPage - 1) * storiesPerPage;
+  const endIndex = startIndex + storiesPerPage;
+  const currentPageStories = allStories.slice(startIndex, endIndex);
+
+  // Reposition stories for current page to fill the cosmic canvas
+  const positionedCurrentStories = currentPageStories.map((story, index) => ({
+    ...story,
+    position: {
+      x: 15 + (index % 3) * 25 + Math.random() * 10,
+      y: 15 + Math.floor(index / 3) * 20 + Math.random() * 10
+    }
+  }));
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages || isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setCurrentPage(newPage);
+    
+    // Reset transition after cosmic travel time
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 1000);
+  };
+
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       setShowSearchResults(false);
@@ -164,7 +267,7 @@ export default function StarWeaverCommunity() {
     
     // Simulate search with cosmic travel time
     setTimeout(() => {
-      const results = stories.filter(story => 
+      const results = allStories.filter(story => 
         story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         story.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
         story.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -267,8 +370,20 @@ export default function StarWeaverCommunity() {
             </h1>
             <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 via-purple-500/20 to-pink-500/20 blur-3xl rounded-full animate-pulse"></div>
           </div>
-          <div className="text-xl text-gray-300 font-light tracking-wide max-w-2xl mx-auto mb-8">
+          <div className="text-xl text-gray-300 font-light tracking-wide max-w-2xl mx-auto mb-2">
             Community Stories & Shared Adventures
+          </div>
+          <div className="text-sm text-gray-500 mb-8">
+            {allStories.length} stories available
+            {totalPages > 1 && (
+              <span className="text-purple-400"> • Page {currentPage} of {totalPages}</span>
+            )}
+            {communityStories.length > 0 && (
+              <span className="text-green-400"> • {communityStories.length} from community</span>
+            )}
+            {isLoadingStories && (
+              <span className="text-purple-400"> • Loading more...</span>
+            )}
           </div>
           
           {/* Floating Navigation Threads */}
@@ -343,6 +458,33 @@ export default function StarWeaverCommunity() {
         <div className="px-6 pb-16">
           <div className="max-w-7xl mx-auto relative">
             
+            {/* Loading indicator for community stories */}
+            {isLoadingStories && (
+              <div className="absolute top-8 right-8 z-10">
+                <div className="bg-black/60 backdrop-blur-xl border border-white/20 rounded-xl p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
+                    <span className="text-white text-sm">Loading community stories...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error indicator */}
+            {loadingError && (
+              <div className="absolute top-8 right-8 z-10">
+                <div className="bg-red-900/60 backdrop-blur-xl border border-red-500/20 rounded-xl p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 text-red-400">⚠</div>
+                    <div>
+                      <div className="text-white text-sm font-medium">Failed to load stories</div>
+                      <div className="text-red-300 text-xs">{loadingError}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Search Mode: Cosmic Travel Effect */}
             {isSearching && (
               <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -361,8 +503,8 @@ export default function StarWeaverCommunity() {
             
             {/* Connection Lines */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30">
-              {(showSearchResults ? searchResults : stories).map((story, i) => 
-                (showSearchResults ? searchResults : stories).slice(i + 1).map((nextStory, j) => {
+              {(showSearchResults ? searchResults : positionedCurrentStories).map((story, i) => 
+                (showSearchResults ? searchResults : positionedCurrentStories).slice(i + 1).map((nextStory, j) => {
                   const currentPos = showSearchResults ? story.searchPosition : story.position;
                   const nextPos = showSearchResults ? nextStory.searchPosition : nextStory.position;
                   const distance = Math.sqrt(
@@ -396,7 +538,7 @@ export default function StarWeaverCommunity() {
             </svg>
             
             {/* Story Nodes */}
-            <div className={`relative h-screen transition-all duration-1000 ${isSearching ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`relative h-screen transition-all duration-1000 ${isSearching || isTransitioning ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
               
               {/* Search Results Stars */}
               {showSearchResults ? (
@@ -406,6 +548,7 @@ export default function StarWeaverCommunity() {
                     <div className="bg-black/60 backdrop-blur-xl border border-white/20 rounded-xl p-4">
                       <h3 className="text-white text-lg font-light mb-2">Search Results</h3>
                       <p className="text-gray-400 text-sm">Found {searchResults.length} stories for "{searchQuery}"</p>
+                      <p className="text-gray-500 text-xs mt-1">Searched across {allStories.length} total stories</p>
                       <button
                         onClick={() => {
                           setShowSearchResults(false);
@@ -538,14 +681,17 @@ export default function StarWeaverCommunity() {
                   ))}
                 </>
               ) : (
-                /* Original Constellation */
-                stories.map((story) => (
+                /* Current Page Constellation */
+                positionedCurrentStories.map((story) => (
                   <div
                     key={story.id}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+                    className={`absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer transition-all duration-1000 ${
+                      story.isCommunityStory ? 'animate-pulse' : ''
+                    } ${isTransitioning ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`}
                     style={{
                       left: `${story.position.x}%`,
-                      top: `${story.position.y}%`
+                      top: `${story.position.y}%`,
+                      animation: story.isCommunityStory && !isTransitioning ? `starAppear 2s ease-out both` : 'none'
                     }}
                     onMouseEnter={() => setHoveredStory(story.id)}
                     onMouseLeave={() => setHoveredStory(null)}
@@ -556,12 +702,25 @@ export default function StarWeaverCommunity() {
                       hoveredStory === story.id ? 'scale-150' : 'scale-100 group-hover:scale-125'
                     }`}>
                       
-                      {/* Outer Glow Ring */}
-                      <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${story.color} opacity-20 blur-2xl scale-150 animate-pulse`}></div>
+                      {/* Enhanced Glow for Community Stories */}
+                      <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${story.color} ${
+                        story.isCommunityStory ? 'opacity-40 blur-3xl scale-200' : 'opacity-20 blur-2xl scale-150'
+                      } animate-pulse`}></div>
                       
-                      {/* Main Node */}
-                      <div className={`relative w-16 h-16 rounded-full bg-gradient-to-r ${story.color} shadow-2xl flex items-center justify-center border border-white/20 backdrop-blur-sm`}>
-                        <BookOpen className="w-6 h-6 text-white/90" />
+                      {/* Main Node with Community Indicator */}
+                      <div className={`relative ${
+                        story.isCommunityStory ? 'w-18 h-18' : 'w-16 h-16'
+                      } rounded-full bg-gradient-to-r ${story.color} shadow-2xl flex items-center justify-center ${
+                        story.isCommunityStory ? 'border-2 border-white/40' : 'border border-white/20'
+                      } backdrop-blur-sm`}>
+                        <BookOpen className={`${story.isCommunityStory ? 'w-7 h-7' : 'w-6 h-6'} text-white/90`} />
+                        
+                        {/* Community Badge */}
+                        {story.isCommunityStory && (
+                          <div className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xs font-bold text-white animate-bounce">
+                            ✨
+                          </div>
+                        )}
                         
                         {/* Stardust indicator */}
                         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-xs font-bold text-white">
@@ -569,18 +728,18 @@ export default function StarWeaverCommunity() {
                         </div>
                       </div>
                       
-                      {/* Thread Count Orbits */}
+                      {/* Enhanced Thread Count Orbits for Community Stories */}
                       <div className="absolute inset-0 pointer-events-none">
-                        {Array.from({ length: Math.min(story.threads, 8) }).map((_, i) => (
+                        {Array.from({ length: Math.min(story.threads, story.isCommunityStory ? 10 : 8) }).map((_, i) => (
                           <div
                             key={i}
-                            className="absolute w-1 h-1 bg-white/60 rounded-full animate-ping"
+                            className={`absolute ${story.isCommunityStory ? 'w-2 h-2 bg-white/80' : 'w-1 h-1 bg-white/60'} rounded-full animate-ping`}
                             style={{
                               top: '50%',
                               left: '50%',
-                              transform: `rotate(${(360 / Math.min(story.threads, 8)) * i}deg) translateY(-40px)`,
+                              transform: `rotate(${(360 / Math.min(story.threads, story.isCommunityStory ? 10 : 8)) * i}deg) translateY(${story.isCommunityStory ? '-45px' : '-40px'})`,
                               animationDelay: `${i * 200}ms`,
-                              animationDuration: '2s'
+                              animationDuration: story.isCommunityStory ? '1.5s' : '2s'
                             }}
                           />
                         ))}
@@ -593,14 +752,27 @@ export default function StarWeaverCommunity() {
                     }`}>
                       <div className="bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl">
                         
-                        {/* Story Header */}
+                        {/* Story Header with Community Badge */}
                         <div className="mb-4">
-                          <h3 className="text-xl font-light text-white mb-1 tracking-wide">{story.title}</h3>
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-xl font-light text-white tracking-wide">{story.title}</h3>
+                            {story.isCommunityStory && (
+                              <div className="px-2 py-1 bg-gradient-to-r from-green-400 to-emerald-400 text-white text-xs font-bold rounded-full">
+                                COMMUNITY
+                              </div>
+                            )}
+                          </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-400">
                             <User className="w-3 h-3" />
                             <span>{story.author}</span>
                             <span>•</span>
                             <span className="text-purple-400">{story.constellation}</span>
+                            {story.isCommunityStory && (
+                              <>
+                                <span>•</span>
+                                <span className="text-green-400">New</span>
+                              </>
+                            )}
                           </div>
                         </div>
                         
@@ -670,6 +842,126 @@ export default function StarWeaverCommunity() {
             </div>
           </div>
         </div>
+
+        {/* Cosmic Pagination */}
+        {totalPages > 1 && !showSearchResults && (
+          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+            <div className="bg-black/60 backdrop-blur-xl border border-white/20 rounded-full p-4 shadow-2xl">
+              <div className="flex items-center space-x-6">
+                
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || isTransitioning}
+                  className={`group relative transition-all duration-300 ${
+                    currentPage === 1 || isTransitioning 
+                      ? 'opacity-40 cursor-not-allowed' 
+                      : 'hover:scale-110 hover:brightness-125'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-lg flex items-center justify-center">
+                    <span className="text-white font-bold">‹</span>
+                  </div>
+                  {currentPage > 1 && !isTransitioning && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity animate-pulse"></div>
+                  )}
+                </button>
+
+                {/* Page Indicators */}
+                <div className="flex items-center space-x-3">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                    if (totalPages <= 7 || pageNum === 1 || pageNum === totalPages || 
+                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          disabled={isTransitioning}
+                          className={`relative transition-all duration-300 ${
+                            pageNum === currentPage 
+                              ? 'scale-125' 
+                              : 'hover:scale-110 opacity-60 hover:opacity-100'
+                          } ${isTransitioning ? 'pointer-events-none' : ''}`}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                            pageNum === currentPage
+                              ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg'
+                              : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
+                          }`}>
+                            {pageNum}
+                          </div>
+                          
+                          {/* Current page cosmic glow */}
+                          {pageNum === currentPage && (
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 blur-xl opacity-40 animate-pulse scale-150"></div>
+                          )}
+                          
+                          {/* Star particles around current page */}
+                          {pageNum === currentPage && (
+                            <div className="absolute inset-0 pointer-events-none">
+                              {Array.from({ length: 4 }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className="absolute w-1 h-1 bg-white rounded-full animate-ping"
+                                  style={{
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: `rotate(${i * 90}deg) translateY(-20px)`,
+                                    animationDelay: `${i * 200}ms`,
+                                    animationDuration: '1.5s'
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    } else if ((pageNum === currentPage - 2 && currentPage > 3) || 
+                               (pageNum === currentPage + 2 && currentPage < totalPages - 2)) {
+                      return (
+                        <span key={pageNum} className="text-gray-500 text-sm">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || isTransitioning}
+                  className={`group relative transition-all duration-300 ${
+                    currentPage === totalPages || isTransitioning 
+                      ? 'opacity-40 cursor-not-allowed' 
+                      : 'hover:scale-110 hover:brightness-125'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-lg flex items-center justify-center">
+                    <span className="text-white font-bold">›</span>
+                  </div>
+                  {currentPage < totalPages && !isTransitioning && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity animate-pulse"></div>
+                  )}
+                </button>
+              </div>
+              
+              {/* Page Info */}
+              <div className="mt-3 text-center">
+                <div className="text-xs text-gray-400">
+                  Page {currentPage} of {totalPages} • Showing {positionedCurrentStories.length} of {allStories.length} stories
+                </div>
+                {isTransitioning && (
+                  <div className="text-xs text-purple-400 mt-1 flex items-center justify-center space-x-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                    <span>Traveling to new constellation...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Custom CSS for animations */}
@@ -709,7 +1001,7 @@ export default function StarWeaverCommunity() {
       `}</style>
 
       {/* Floating Create Button */}
-      <div className="fixed bottom-8 right-8 z-20">
+      <div className={`fixed ${totalPages > 1 && !showSearchResults ? 'bottom-32' : 'bottom-8'} right-8 z-20 transition-all duration-300`}>
         <button className="group relative">
           <div className="w-16 h-16 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300">
             <Plus className="w-8 h-8 text-white" />

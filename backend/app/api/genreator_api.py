@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.generation import GenerateRequest, GenerateResponse
 from app.services.generate_pipeline import generate_manga_scene
+from app.services.story_service import get_user_stories, get_community_stories
 
 router = APIRouter()
 
@@ -49,10 +50,21 @@ async def list_user_stories(req: GenerateRequest):
     """
     pass        
 
-@router.post("/list-community-styles")
-async def list_community_styles(req: GenerateRequest):
+@router.get("/list-community-stories")
+async def list_community_stories(req: GenerateRequest):
     """
     List all community stories 
+    """
+    try:
+        stories = get_community_stories()  
+        return {"status": "success", "stories": stories}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/start-story")
+async def start_story(req: GenerateRequest):
+    """
+    Start a new story.
     """
     pass
 

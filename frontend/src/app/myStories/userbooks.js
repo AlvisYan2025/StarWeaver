@@ -48,6 +48,17 @@ export default function MyStoriesPage() {
   const [showStats, setShowStats] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
+  const [showNewStoryModal, setShowNewStoryModal] = useState(false);
+  const [newStoryData, setNewStoryData] = useState({
+    title: '',
+    genre: '',
+    description: '',
+    privacy: 'private',
+    targetChapters: ''
+  });
+  const [myStories, setStories] = useState([]);  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -57,93 +68,65 @@ export default function MyStoriesPage() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const myStories = [
-    {
-      id: 1,
-      title: "The Midnight Constellation",
-      status: "published",
-      privacy: "public",
-      chapters: 12,
-      words: 24500,
-      likes: 567,
-      comments: 89,
-      views: 2340,
-      rating: 4.7,
-      genre: "Dark Fantasy",
-      lastEdited: "2 days ago",
-      drafts: 3,
-      color: "from-violet-500 via-purple-600 to-indigo-700",
-      position: { x: 20, y: 25 }
-    },
-    {
-      id: 2,
-      title: "Digital Dreamscapes",
-      status: "draft",
-      privacy: "private",
-      chapters: 8,
-      words: 15200,
-      likes: 0,
-      comments: 0,
-      views: 0,
-      rating: 0,
-      genre: "Cyberpunk Romance",
-      lastEdited: "1 hour ago",
-      drafts: 7,
-      color: "from-cyan-400 via-blue-500 to-indigo-600",
-      position: { x: 70, y: 35 }
-    },
-    {
-      id: 3,
-      title: "Echoes in the Void",
-      status: "published",
-      privacy: "public",
-      chapters: 25,
-      words: 48900,
-      likes: 1234,
-      comments: 203,
-      views: 5670,
-      rating: 4.9,
-      genre: "Space Opera",
-      lastEdited: "1 week ago",
-      drafts: 1,
-      color: "from-emerald-400 via-teal-500 to-cyan-600",
-      position: { x: 45, y: 15 }
-    },
-    {
-      id: 4,
-      title: "Whispering Shadows",
-      status: "paused",
-      privacy: "unlisted",
-      chapters: 6,
-      words: 9800,
-      likes: 23,
-      comments: 8,
-      views: 156,
-      rating: 4.2,
-      genre: "Gothic Horror",
-      lastEdited: "3 weeks ago",
-      drafts: 2,
-      color: "from-red-500 via-pink-500 to-rose-600",
-      position: { x: 25, y: 70 }
-    },
-    {
-      id: 5,
-      title: "Quantum Hearts",
-      status: "draft",
-      privacy: "private",
-      chapters: 3,
-      words: 5600,
-      likes: 0,
-      comments: 0,
-      views: 0,
-      rating: 0,
-      genre: "Sci-Fi Romance",
-      lastEdited: "yesterday",
-      drafts: 5,
-      color: "from-pink-400 via-rose-500 to-fuchsia-600",
-      position: { x: 75, y: 80 }
-    }
-  ];
+  //fetch data from backend
+
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        const response = await fetch('/community-stories');
+        if (!response.ok) {
+          data = [
+            {
+              id: 5,
+              title: "Quantum Hearts",
+              status: "draft",
+              privacy: "private",
+              chapters: 3,
+              words: 5600,
+              likes: 0,
+              comments: 0,
+              views: 0,
+              rating: 0,
+              genre: "Sci-Fi Romance",
+              lastEdited: "yesterday",
+              drafts: 5,
+              color: "from-pink-400 via-rose-500 to-fuchsia-600",
+              position: { x: 75, y: 80 }
+            }
+          ];
+          setStories(data);
+          throw new Error(`Error: ${response.status}`);
+        }
+        const data = await response.json();
+        setStories(data); 
+      } catch (err) {
+        const data = [
+          {
+            id: 5,
+            title: "Quantum Hearts",
+            status: "draft",
+            privacy: "private",
+            chapters: 3,
+            words: 5600,
+            likes: 0,
+            comments: 0,
+            views: 0,
+            rating: 0,
+            genre: "Sci-Fi Romance",
+            lastEdited: "yesterday",
+            drafts: 5,
+            color: "from-pink-400 via-rose-500 to-fuchsia-600",
+            position: { x: 75, y: 80 }
+          }
+        ];
+        setStories(data);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStories();
+  }, []); 
 
   const filteredStories = myStories.filter(story => {
     const matchesSearch = story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -165,6 +148,49 @@ export default function MyStoriesPage() {
   const totalPages = Math.ceil(sortedStories.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedStories = sortedStories.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleNewStorySubmit = async(e) => {
+    e.preventDefault();
+    console.log('Form submitted!', newStoryData); 
+    if (!newStoryData.title.trim()) {
+      alert('Please enter a story title');
+      return;
+    }
+    try {
+      const response = await fetch('/start-story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newStoryData)
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to create story. Status: ${response.status}`);
+      }  
+      const createdStory = await response.json();
+      console.log('Created story:', createdStory);
+      // Reset form and close modal
+      setNewStoryData({
+        title: '',
+        genre: '',
+        description: '',
+        privacy: 'private',
+        targetChapters: ''
+      });
+      setShowNewStoryModal(false);
+    } catch (error) {
+      console.error('Error creating story:', error);
+      alert('An error occurred while creating the story.');
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setNewStoryData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const totalStats = {
     totalWords: myStories.reduce((sum, story) => sum + story.words, 0),
@@ -553,6 +579,167 @@ export default function MyStoriesPage() {
           </div>
         </div>
       </div>
+      {/* New Story Modal */}
+      {showNewStoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowNewStoryModal(false)}
+          ></div>
+          
+          {/* Modal Content */}
+          <div className="relative bg-black/90 backdrop-blur-xl border border-white/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            {/* Cosmic Background Effect */}
+            <div className="absolute inset-0 rounded-3xl opacity-30">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl"></div>
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white/20 animate-pulse"
+                  style={{
+                    width: Math.random() * 3 + 1 + 'px',
+                    height: Math.random() * 3 + 1 + 'px',
+                    top: Math.random() * 100 + '%',
+                    left: Math.random() * 100 + '%',
+                    animationDelay: Math.random() * 2 + 's',
+                  }}
+                />
+              ))}
+            </div>
+            
+            {/* Modal Header */}
+            <div className="relative mb-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-light text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-300 to-pink-300">
+                  Create New Story
+                </h2>
+                <button
+                  onClick={() => setShowNewStoryModal(false)}
+                  className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
+                >
+                  <Plus className="w-5 h-5 transform rotate-45" />
+                </button>
+              </div>
+              <p className="text-gray-400 text-sm mt-2">Begin your cosmic journey with a new story</p>
+            </div>
+            
+            {/* Form */}
+            <form onSubmit={handleNewStorySubmit} className="relative space-y-4">
+              
+              {/* Title Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Story Title *
+                </label>
+                <input
+                  type="text"
+                  value={newStoryData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Enter your story title..."
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-white/30 transition-all"
+                  required
+                />
+              </div>
+              
+              {/* Genre Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Genre
+                </label>
+                <select
+                  value={newStoryData.genre}
+                  onChange={(e) => handleInputChange('genre', e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-white/30 transition-all"
+                >
+                  <option value="" className="bg-black">Select a genre...</option>
+                  <option value="Fantasy" className="bg-black">Fantasy</option>
+                  <option value="Sci-Fi" className="bg-black">Science Fiction</option>
+                  <option value="Romance" className="bg-black">Romance</option>
+                  <option value="Mystery" className="bg-black">Mystery</option>
+                  <option value="Horror" className="bg-black">Horror</option>
+                  <option value="Adventure" className="bg-black">Adventure</option>
+                  <option value="Drama" className="bg-black">Drama</option>
+                  <option value="Comedy" className="bg-black">Comedy</option>
+                  <option value="Cosmic Horror" className="bg-black">Cosmic Horror</option>
+                  <option value="Cyberpunk" className="bg-black">Cyberpunk</option>
+                  <option value="Space Opera" className="bg-black">Space Opera</option>
+                  <option value="Other" className="bg-black">Other</option>
+                </select>
+              </div>
+              
+              {/* Description Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={newStoryData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Tell us about your story..."
+                  rows="3"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-white/30 transition-all resize-none"
+                />
+              </div>
+              
+              {/* Privacy and Target Chapters */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Privacy
+                  </label>
+                  <select
+                    value={newStoryData.privacy}
+                    onChange={(e) => handleInputChange('privacy', e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-white/30 transition-all"
+                  >
+                    <option value="private" className="bg-black">Private</option>
+                    <option value="unlisted" className="bg-black">Unlisted</option>
+                    <option value="public" className="bg-black">Public</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Target Chapters
+                  </label>
+                  <input
+                    type="number"
+                    value={newStoryData.targetChapters}
+                    onChange={(e) => handleInputChange('targetChapters', e.target.value)}
+                    placeholder="e.g., 20"
+                    min="1"
+                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-white/30 transition-all"
+                  />
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowNewStoryModal(false)}
+                  className="flex-1 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-gray-300 rounded-xl hover:bg-white/20 hover:text-white transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newStoryData.title}
+                  className={`flex-1 px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 ${
+                    newStoryData.title 
+                      ? 'bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 text-white hover:from-violet-600 hover:via-purple-600 hover:to-pink-600 hover:scale-105' 
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Create Story</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Star Orbit Page Selector */}
       {totalPages > 1 && (
@@ -636,7 +823,10 @@ export default function MyStoriesPage() {
       <div className="fixed bottom-8 right-8 z-20 space-y-4">
         
         {/* New Story Button */}
-        <button className="group relative">
+        <button 
+          onClick={() => setShowNewStoryModal(true)}
+          className="group relative"
+        >
           <div className="w-16 h-16 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300">
             <Plus className="w-8 h-8 text-white" />
           </div>
