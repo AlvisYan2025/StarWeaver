@@ -10,6 +10,7 @@ class Story(Base):
     title = Column(String(200), nullable=False)
     genre = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    published = Column(Boolean, default=False)
 
     user = relationship('User', back_populates='stories')
     contents = relationship('TextContent', back_populates='story', cascade='all, delete-orphan')
