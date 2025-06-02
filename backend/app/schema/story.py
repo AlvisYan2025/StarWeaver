@@ -1,5 +1,6 @@
-from user import User   
-from sqlalchemy import Column, Integer, String, DateTime, func
+from schema.user import User   
+from sqlalchemy import Column, Integer, String, Boolean, Text, DateTime, func, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from db.db import Base
 

@@ -1,7 +1,8 @@
 from openai import OpenAI
 import dotenv
+from pathlib import Path
 
-dotenv.load_dotenv(dotenv_path=Path("backend/.env"))
+dotenv.load_dotenv(dotenv_path=Path(".env"))
 client = OpenAI()
 
 def generate_next_chunk(previous_text: str, genre: str = "fantasy", style: str = "descriptive", max_tokens: int = 200) -> str:
