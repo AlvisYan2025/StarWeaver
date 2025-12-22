@@ -1,13 +1,20 @@
-from db.db import SessionLocal
-from db.repos.story_repo import StoryRepository
+from db.db import AsyncSessionLocal
+from db.repos.story_repo import StoryRepository 
 
-def get_user_stories(user_id: int):
-    with SessionLocal() as session:
+
+async def get_user_stories(user_id: int):
+    async with AsyncSessionLocal() as session:
         repo = StoryRepository(session)
-        return repo.retrieve_user_stories(user_id)
+        return await repo.retrieve_user_stories(user_id)
 
-def get_community_stories():
-    with SessionLocal() as session:
+
+async def get_community_stories():
+    async with AsyncSessionLocal() as session:
         repo = StoryRepository(session)
-        return repo.retrieve_public_stories()
+        return await repo.retrieve_public_stories()
 
+
+async def delete_user_stories(story_id: int):
+    async with AsyncSessionLocal() as session: 
+        repo = StoryRepository(session)
+        return await repo.delete_story_with_id(story_id)

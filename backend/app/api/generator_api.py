@@ -55,8 +55,20 @@ async def list_community_stories():
     List all community stories 
     """
     try:
-        stories = get_community_stories()  
-        return {"status": "success", "stories": stories}
+        stories = await get_community_stories()
+        # Convert SQLAlchemy objects to dicts for JSON serialization
+        stories_dict = [
+            {
+                "id": story.id,
+                "user_id": story.user_id,
+                "title": story.title,
+                "genre": story.genre,
+                "created_at": story.created_at.isoformat() if story.created_at else None,
+                "published": story.published
+            }
+            for story in stories
+        ]
+        return {"status": "success", "stories": stories_dict}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

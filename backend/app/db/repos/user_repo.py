@@ -1,62 +1,71 @@
-from schema.user import User  # make sure this path matches your project
-from sqlalchemy.orm import Session
+from schema.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 
 class UserRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def add_user(self, username: str, email: str, password_hash: str) -> User:
-        user = User(username=username, email=email, password_hash=password_hash)
+    async def add_user(self, username: str, email: str, password_hash: str) -> User:
+        user = User(username=username, email=email, password=password_hash)  # Note: schema uses 'password' not 'password_hash'
         self.session.add(user)
-        self.session.commit()
+        await self.session.commit()
+        await self.session.refresh(user)
         return user
 
-    def get_user(self, username: str) -> User:
-        return self.session.query(User).filter_by(username=username).first()
+    async def get_user(self, username: str) -> User:
+        result = await self.session.execute(
+            select(User).where(User.username == username)
+        )
+        return result.scalar_one_or_none()
 
-    def get_user_by_id(self, user_id: int) -> User:
-        return self.session.query(User).filter_by(id=user_id).first()
+    async def get_user_by_id(self, user_id: int) -> User:
+        result = await self.session.execute(
+            select(User).where(User.id == user_id)
+        )
+        return result.scalar_one_or_none()
 
-    def delete_user(self, user_id: int) -> bool:
-        user = self.get_user_by_id(user_id)
+    async def delete_user(self, user_id: int) -> bool:
+        user = await self.get_user_by_id(user_id)
         if user:
-            self.session.delete(user)
-            self.session.commit()
+            await self.session.delete(user)
+            await self.session.commit()
             return True
         return False
 
-    def list_users(self) -> list[User]:
-        return self.session.query(User).all()
+    async def list_users(self) -> list[User]:
+        result = await self.session.execute(select(User))
+        return list(result.scalars().all())
 
-    def change_password(self, user_id: int, new_password_hash: str) -> bool:
-        user = self.get_user_by_id(user_id)
+    async def change_password(self, user_id: int, new_password_hash: str) -> bool:
+        user = await self.get_user_by_id(user_id)
         if user:
-            user.password_hash = new_password_hash
-            self.session.commit()
+            user.password = new_password_hash  # Note: schema uses 'password' not 'password_hash'
+            await self.session.commit()
             return True
         return False
 
-    def change_username(self, user_id: int, new_username: str) -> bool:
-        user = self.get_user_by_id(user_id)
+    async def change_username(self, user_id: int, new_username: str) -> bool:
+        user = await self.get_user_by_id(user_id)
         if user:
             user.username = new_username
-            self.session.commit()
+            await self.session.commit()
             return True
         return False
 
-    def change_email(self, user_id: int, new_email: str) -> bool:
-        user = self.get_user_by_id(user_id)
+    async def change_email(self, user_id: int, new_email: str) -> bool:
+        user = await self.get_user_by_id(user_id)
         if user:
             user.email = new_email
-            self.session.commit()
+            await self.session.commit()
             return True
         return False
 
-    def suspend_user(self, user_id: int) -> bool:
-        user = self.get_user_by_id(user_id)
+    async def suspend_user(self, user_id: int) -> bool:
+        user = await self.get_user_by_id(user_id)
         if user:
-            user.is_suspended = True
-            self.session.commit()
+            user.active = False  # Using 'active' field instead of 'is_suspended'
+            await self.session.commit()
             return True
         return False
