@@ -1,0 +1,241 @@
+SPRINT 1 – CORE PLATFORM & PROJECT SKELETON
+
+Goal:
+Users can log in and create empty novel projects safely.
+
+Scope Decisions:
+
+No AI features
+
+No manga features
+
+Focus on data model stability
+
+Tasks:
+
+Implement user authentication (email or OAuth)
+
+Create user data model and persistence
+
+Implement novel project creation, listing, and deletion
+
+Build project dashboard
+
+Build basic application shell (navigation, routing)
+
+Enforce user-level permissions and data isolation
+
+Define core domain models:
+User
+NovelProject
+Chapter
+Character (stub)
+Lore (stub)
+
+Output:
+
+Users can sign up and log in
+
+Users can create and delete novel projects
+
+Projects persist across sessions
+
+SPRINT 2 – CHAPTER SYSTEM & TEXT EDITING
+
+Goal:
+Provide a strong manual writing experience before introducing AI.
+
+Scope Decisions:
+
+Single editor view
+
+Snapshot-based versioning only
+
+Minimal UI polish
+
+Tasks:
+
+Implement chapter creation, renaming, reordering, and deletion
+
+Build chapter text editor
+
+Implement autosave
+
+Create chapter version snapshots on save
+
+Implement version restore
+
+Add section-level lock flags to prevent AI overwrites
+
+Output:
+
+Users can write full novels manually
+
+Users can safely revert changes
+
+Text state is stable for AI integration
+
+SPRINT 3 – AI NOVEL GENERATION & CHARACTER MEMORY (MVP)
+
+Goal:
+Enable AI-assisted writing with basic character consistency.
+
+Scope Decisions:
+
+Character memory via summaries only
+
+No advanced relationship graph
+
+No lore contradiction detection
+
+Tasks:
+
+Integrate large language model for text generation
+
+Implement prompt-based chapter generation
+
+Implement continue-writing-from-cursor
+
+Implement rewrite or expand selected text
+
+Add style controls (tone, creativity)
+
+Implement character creation and editing:
+Name
+Appearance
+Personality
+Role
+
+Generate character summaries
+
+Inject character summaries into AI prompts
+
+Output:
+
+Human-in-the-loop novel writing works
+
+Characters remain mostly consistent
+
+Novel creation is demo-ready
+
+SPRINT 4 – MANGA PROJECT SETUP & TEXT STRUCTURING
+
+Goal:
+Convert novel text into manga-ready structured data.
+
+Scope Decisions:
+
+No image generation yet
+
+Panel-first approach
+
+No manual layout editing
+
+Tasks:
+
+Implement manga project creation
+
+Link manga projects to novel projects
+
+Implement manga style selection
+
+Implement scene segmentation from novel text
+
+Implement scene-to-panel breakdown
+
+Extract dialogue, narration, and actions
+
+Attribute dialogue to speakers
+
+Define panel data schema:
+panel_id
+characters_in_panel
+dialogue
+action_description
+
+Output:
+
+Novel text converts into structured manga panels
+
+Intermediate representation is stable and reusable
+
+SPRINT 5 – MANGA IMAGE GENERATION (PANEL-LEVEL MVP)
+
+Goal:
+Generate manga images from structured panels.
+
+Scope Decisions:
+
+Panel-level images only
+
+No bounding boxes or masks
+
+Simple character visual consistency
+
+Tasks:
+
+Integrate image generation model
+
+Implement character visual profiles:
+Hair
+Clothing
+Facial traits
+
+Build panel-level image prompts
+
+Generate image per panel
+
+Allow regeneration of individual panels
+
+Cache generated images
+
+Associate images with panel IDs
+
+Output:
+
+Manga images generated from novel text
+
+Panels are editable and regenerable
+
+Visual consistency is acceptable for MVP
+
+SPRINT 6 – EXPORT, STABILITY & MVP POLISH
+
+Goal:
+Deliver an end-to-end usable MVP.
+
+Scope Decisions:
+
+PDF export only
+
+Basic usage tracking
+
+Minimal moderation
+
+Tasks:
+
+Implement novel export to TXT and PDF
+
+Implement manga export to PDF
+
+Implement page and panel ordering controls
+
+Add async job progress indicators
+
+Implement retry and failure recovery
+
+Track basic usage metrics (tokens and images)
+
+Add basic content moderation
+
+Add logging and error handling
+
+Perform final UX polish
+
+Output:
+
+Complete novel-to-manga workflow
+
+Exportable outputs
+
+Stable, demo-ready MVP

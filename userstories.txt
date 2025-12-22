@@ -1,0 +1,144 @@
+Novel Generation – User Stories
+A. Account & Project Management (Novel)
+
+US-N-1: User Account Creation
+As a user, I want to create an account so my novels are saved persistently.
+
+US-N-2: Novel Project Creation
+As a user, I want to create a new novel project with a title, genre, and tone.
+
+US-N-3: Novel Project Dashboard
+As a user, I want a dashboard to view and manage all my novel projects.
+
+US-N-4: Novel Project Deletion
+As a user, I want to delete a novel project permanently if I no longer need it.
+
+B. AI-Assisted Novel Writing
+
+US-N-5: Prompt-Based Chapter Generation
+As a user, I want to generate a chapter from a high-level prompt.
+
+US-N-6: Continue Writing From My Text
+As a user, I want the AI to continue writing from text I wrote myself.
+
+US-N-7: Rewrite or Expand Selected Text
+As a user, I want to select a paragraph and ask the AI to rewrite or expand it.
+
+US-N-8: Control Generation Style
+As a user, I want to control tone, pacing, descriptiveness, and creativity level.
+
+C. Chapter & Version Control
+
+US-N-9: Chapter Management
+As a user, I want to add, delete, rename, and reorder chapters.
+
+US-N-10: Chapter Version History
+As a user, I want to view and restore previous versions of a chapter.
+
+US-N-11: Lock Text From AI Editing
+As a user, I want to lock sections so the AI does not modify them.
+
+D. Characters & Story Memory
+
+US-N-12: Character Creation
+As a user, I want to define characters with name, appearance, personality, and role.
+
+US-N-13: Character Editing
+As a user, I want to update character traits as the story evolves.
+
+US-N-14: Persistent Character Consistency
+As a user, I want characters to remain consistent across all chapters.
+
+US-N-15: Character Relationship Tracking
+As a user, I want the system to remember relationships between characters.
+
+E. Worldbuilding & Lore
+
+US-N-16: Lore Creation
+As a user, I want to define locations, rules, factions, and world lore.
+
+US-N-17: Lore Consistency Enforcement
+As a user, I want the AI to avoid contradicting established lore.
+
+US-N-18: Lore Editing
+As a user, I want to manually edit or override lore entries.
+
+F. Novel Export & Sharing
+
+US-N-19: Novel Export
+As a user, I want to export my novel as TXT, PDF, or DOCX.
+
+US-N-20: Chapter-Based Export
+As a user, I want to export only selected chapters if needed.
+
+Manga Generation – User Stories
+A. Manga Project Setup
+
+US-M-1: Manga Project Creation
+As a user, I want to create a manga project linked to a novel or standalone.
+
+US-M-2: Manga Style Selection
+As a user, I want to choose a manga style (e.g., shonen, seinen, chibi).
+
+US-M-3: Page & Panel Layout Preferences
+As a user, I want to define default panel layouts and reading direction.
+
+B. Text-to-Manga Conversion
+
+US-M-4: Scene Segmentation
+As a user, I want novel text split into manga scenes automatically.
+
+US-M-5: Panel Breakdown
+As a user, I want scenes broken into individual manga panels.
+
+US-M-6: Dialogue and Action Extraction
+As a user, I want dialogue, narration, and actions separated clearly.
+
+C. Manga Character Management
+
+US-M-7: Character Visual Profiles
+As a user, I want to define visual traits for each character.
+
+US-M-8: Character Visual Consistency
+As a user, I want characters to look consistent across all panels.
+
+US-M-9: Outfit and Expression Control
+As a user, I want to specify outfits and facial expressions per scene or panel.
+
+D. Manga Image Generation
+
+US-M-10: Panel-Level Image Generation
+As a user, I want each panel generated as a separate image.
+
+US-M-11: Regenerate Individual Panels
+As a user, I want to regenerate a single panel without affecting others.
+
+US-M-12: Character-Aware Generation
+As a user, I want the system to know which characters appear in each panel.
+
+E. Panel Layout & Positioning
+
+US-M-13: Character Localization
+As a user, I want the system to know where each character appears in a panel.
+
+US-M-14: Speech Bubble Placement
+As a user, I want dialogue placed near the correct character.
+
+US-M-15: Manual Panel Editing
+As a user, I want to manually adjust panel layout and content.
+
+F. Manga Editing & Iteration
+
+US-M-16: Selective Regeneration
+As a user, I want to regenerate text or visuals for a selected panel only.
+
+US-M-17: Lock Panel Content
+As a user, I want to lock panels so they cannot be regenerated accidentally.
+
+G. Manga Export & Publishing
+
+US-M-18: Manga Export
+As a user, I want to export my manga as images or a compiled PDF.
+
+US-M-19: Page Ordering Control
+As a user, I want to control page and panel ordering before export.

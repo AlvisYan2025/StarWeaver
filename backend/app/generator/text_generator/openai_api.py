@@ -13,15 +13,11 @@ def generate_next_chunk(previous_text: str, genre: str = "fantasy", style: str =
         max_tokens (int): The maximum number of tokens to generate.
     """
     response = client.chat.completions.create(
-        model="gpt-4.1",
+        model="gpt-4-turbo-preview",  # Using valid OpenAI model name
         messages=[
             {
                 "role": "system",
-                "content": f"You are a skilled {genre} novelist. Write in a vivid, {style} style with strong character voice and plot consistency."
-            },
-            {
-                "role": "developer",
-                "content": "Ensure the story flows naturally from the last paragraph. Avoid repetition. Think like a novelist planning the next scene."
+                "content": f"You are a skilled {genre} novelist. Write in a vivid, {style} style with strong character voice and plot consistency. Ensure the story flows naturally from the last paragraph. Avoid repetition. Think like a novelist planning the next scene."
             },
             {
                 "role": "user",
@@ -38,7 +34,7 @@ def generate_next_chunk(previous_text: str, genre: str = "fantasy", style: str =
 
 def describe_scene(previous_text: str) -> dict:
     response = client.chat.completions.create(
-        model="gpt-4.1",
+        model="gpt-4-turbo-preview",  # Using valid OpenAI model name
         messages=[
             {
                 "role": "system",
